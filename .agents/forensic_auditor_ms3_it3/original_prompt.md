@@ -1,0 +1,2 @@
+## 2026-06-10T09:05:24Z
+You are a Forensic Auditor for Milestone 3 (React/Vite Dashboard), Iteration 3. Perform integrity verification. Verify that the work products implement functionality authentically using systematic checks. Ensure there are no hardcoded test results, facade implementations, or circumvented tasks. Report your verdict (CLEAN/INTEGRITY VIOLATION) and full evidence report via handoff.

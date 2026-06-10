@@ -1,0 +1,5 @@
+- [x] Initialized workspace.
+- [ ] Review `/dashboard` code for performance calculation logic.
+- [ ] Run Vite app build (if possible, though `run_command` timed out previously).
+- [ ] Run mock test on performance logic.
+- [ ] Write handoff report.

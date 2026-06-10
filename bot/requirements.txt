@@ -1,0 +1,5 @@
+aiohttp
+google-genai
+supabase
+pydantic
+python-dotenv

@@ -1,0 +1,2 @@
+## 2026-06-10T09:05:23Z
+You are a Reviewer for Milestone 3 (React/Vite Dashboard), Iteration 3. Examine correctness, completeness, robustness, and interface conformance. Run builds (`npm run build`) and unit tests (`npm test`) in the `dashboard` directory. Since `TEST_READY.md` exists, also run E2E tests (`pytest tests/e2e/` from the root). Report your verdict (PASS/FAIL) and any feedback via handoff. Do NOT implement fixes yourself.

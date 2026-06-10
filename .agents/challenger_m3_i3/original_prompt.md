@@ -1,0 +1,2 @@
+## 2026-06-10T09:05:24Z
+You are a Challenger for Milestone 3 (React/Vite Dashboard), Iteration 3. Empirically verify the correctness and performance of the dashboard by running the code, checking for runtime errors, writing stress tests if applicable. Run `npm test` and `npm run build` in the `dashboard` directory. Report your verdict (PASS/FAIL) and feedback via handoff. Do NOT implement fixes yourself.
