@@ -13,7 +13,8 @@ class TestTradeLogic(unittest.TestCase):
     @patch('bot.trading.engine.fetch_portfolio')
     @patch('bot.trading.engine.upsert_portfolio_balance')
     @patch('bot.trading.engine.insert_trade')
-    def test_trade_sizes_equal(self, mock_insert, mock_upsert, mock_fetch, mock_client):
+    @patch('bot.trading.engine.update_portfolio_balance_optimistic', return_value=True)
+    def test_trade_sizes_equal(self, mock_opt, mock_insert, mock_upsert, mock_fetch, mock_client):
         # We start with $100,000 USD
         mock_fetch.return_value = {"USD": 100000.0}
         mock_client.return_value = MagicMock()
@@ -72,7 +73,8 @@ class TestTradeLogic(unittest.TestCase):
     @patch('bot.trading.engine.fetch_portfolio')
     @patch('bot.trading.engine.upsert_portfolio_balance')
     @patch('bot.trading.engine.insert_trade')
-    def test_sell_proceeds_reinvested(self, mock_insert, mock_upsert, mock_fetch, mock_client):
+    @patch('bot.trading.engine.update_portfolio_balance_optimistic', return_value=True)
+    def test_sell_proceeds_reinvested(self, mock_opt, mock_insert, mock_upsert, mock_fetch, mock_client):
         # We start with $0 USD, but we have 10 AAPL shares (worth $1000 total)
         mock_fetch.return_value = {"USD": 0.0, "AAPL": 10.0}
         mock_client.return_value = MagicMock()

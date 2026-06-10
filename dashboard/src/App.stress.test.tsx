@@ -45,29 +45,30 @@ vi.mock('./lib/supabase', () => {
   return {
     supabase: {
       from: vi.fn((table) => {
-        const chain = {
-          select: vi.fn(() => {
-            const selectChain: any = {
-              order: vi.fn(() => {
-                if (table === 'trades') {
-                  return Promise.resolve({
-                    data: mockTrades,
-                    error: null
-                  });
-                }
-                return Promise.resolve({ data: [], error: null });
-              }),
-              then: function(resolve: any) {
-                if (table === 'portfolio') {
-                  resolve({
-                    data: mockPortfolio,
-                    error: null
-                  });
-                }
-              }
-            };
-            return selectChain;
-          })
+        const chain: any = {
+          select: vi.fn(() => chain),
+          eq: vi.fn((_column: string, value: string) => {
+            chain._currentAsset = value;
+            return chain;
+          }),
+          order: vi.fn(() => chain),
+          limit: vi.fn(() => chain),
+          maybeSingle: vi.fn(() => {
+            if (table === 'trades') {
+              const latest = mockTrades.find(t => t.asset_symbol === chain._currentAsset);
+              return Promise.resolve({ data: latest || null, error: null });
+            }
+            return Promise.resolve({ data: null, error: null });
+          }),
+          then: function(resolve: any) {
+            if (table === 'portfolio') {
+              resolve({ data: mockPortfolio, error: null });
+            } else if (table === 'trades') {
+              resolve({ data: mockTrades, error: null });
+            } else {
+              resolve({ data: [], error: null });
+            }
+          }
         };
         return chain;
       }),

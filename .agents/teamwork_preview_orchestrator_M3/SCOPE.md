@@ -6,7 +6,7 @@
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | M3 | React/Vite Dashboard compilation fixes | none | IN_PROGRESS |
+| 1 | M3 | React/Vite Dashboard compilation fixes | none | DONE |
 
 ## Interface Contracts
 ### Dashboard ↔ Database

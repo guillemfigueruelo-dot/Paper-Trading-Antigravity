@@ -7,14 +7,23 @@ let triggerPortfolioChange: any;
 vi.mock('./lib/supabase', () => {
   return {
     supabase: {
-      from: vi.fn(() => ({
-        select: vi.fn(() => ({
-          order: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      from: vi.fn((table) => {
+        const chain: any = {
+          select: vi.fn(() => chain),
+          eq: vi.fn(() => chain),
+          order: vi.fn(() => chain),
+          limit: vi.fn(() => chain),
+          maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null })),
           then: function(resolve: any) {
-            resolve({ data: [{ asset_symbol: 'USD', balance: 100000 }], error: null });
+            if (table === 'portfolio') {
+              resolve({ data: [{ asset_symbol: 'USD', balance: 100000 }], error: null });
+            } else {
+              resolve({ data: [], error: null });
+            }
           }
-        }))
-      })),
+        };
+        return chain;
+      }),
       channel: vi.fn(() => ({
         on: vi.fn((_event, filter, callback) => {
           if (filter.table === 'portfolio') {

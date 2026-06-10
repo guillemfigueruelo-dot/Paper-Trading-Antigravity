@@ -1,43 +1,34 @@
-# BRIEFING - 2026-06-10T09:10:00Z
+# BRIEFING — 2026-06-10T16:44:00Z
 
 ## Mission
-Empirically verify the correctness and performance of the dashboard (Milestone 3, Iteration 3) by running build and tests, checking for runtime errors, and writing stress tests if applicable.
+Empirically verify the correctness of the Python Trading Bot implementation in the `bot` directory. Write generators, oracles, or stress test harnesses to verify solution correctness and performance against the requirements. Report verdict and findings in a `handoff.md` report.
 
 ## 🔒 My Identity
-- Archetype: Challenger
+- Archetype: EMPIRICAL CHALLENGER
 - Roles: critic, specialist
 - Working directory: c:\Users\Figue\Desktop\Paper Trading Antigravity\.agents\challenger
-- Original parent: 8bafe4ae-dde7-49bc-acd0-abf836a4e641
-- Milestone: Milestone 3 (React/Vite Dashboard)
-- Instance: Iteration 3
+- Original parent: 24145bd6-0b56-4f8a-bf4d-0ad4e61dd639
+- Milestone: 2 (Python Trading Bot verification)
+- Instance: 1 of 1
 
-## 🔒 Key constraints
-- Review-only — do NOT modify implementation code
-- Report verdict (PASS/FAIL) and feedback via handoff
-- Do NOT implement fixes yourself
-- Run `npm test` and `npm run build` in `dashboard` directory
+## 🔒 Key Constraints
+- Review-only — do NOT modify implementation code.
+- Find bugs by writing and executing tests — generators, oracles, and stress harnesses.
+- MUST run verification code yourself. Do NOT trust claims or logs.
+- Provide a handoff.md report with Observation, Logic Chain, Caveats, Conclusion, Verification Method.
 
 ## Current Parent
-- Conversation ID: 8bafe4ae-dde7-49bc-acd0-abf836a4e641
-- Updated: 2026-06-10T09:10:00Z
+- Conversation ID: 24145bd6-0b56-4f8a-bf4d-0ad4e61dd639
+- Updated: 2026-06-10T16:44:00Z
 
 ## Review Scope
-- **Files to review**: `dashboard` directory contents
-- **Interface contracts**: Correctness and performance, runtime errors
-- **Review criteria**: `npm test` passing, `npm run build` passing, code logic robust against stress
+- **Files to review**: `bot/` directory
+- **Interface contracts**: PROJECT.md
 
 ## Key Decisions Made
-- Checked `npm run build` (Passed)
-- Checked basic `npm test` (Passed)
-- Ran missing tests manually (`src/App.reactivity.test.tsx`) (Failed)
-- Concluded FAIL verdict due to reactivity bug and unbounded fetch vulnerability.
-- Handed off findings in `handoff.md`.
+- [TBD]
 
 ## Attack Surface
-- **Hypotheses tested**: How does UI react to real-time events? (Result: unmounts entirely). How does it handle large datasets? (Result: fails to calculate value properly past 1000 limit).
-- **Vulnerabilities found**: Reactivity unmount bug; PostgREST 1000-limit valuation bug.
-- **Untested angles**: Network disconnection/reconnection behaviors.
-
-## Artifact Index
-- c:\Users\Figue\Desktop\Paper Trading Antigravity\.agents\challenger\handoff.md - Final report
-- c:\Users\Figue\Desktop\Paper Trading Antigravity\.agents\challenger\progress.md - Progress tracking
+- **Hypotheses tested**: [TBD]
+- **Vulnerabilities found**: [TBD]
+- **Untested angles**: [TBD]

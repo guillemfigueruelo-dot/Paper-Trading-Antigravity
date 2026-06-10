@@ -9,30 +9,30 @@ vi.mock('./lib/supabase', () => {
   return {
     supabase: {
       from: vi.fn((table) => {
-        const chain = {
-          select: vi.fn(() => {
-            const selectChain: any = {
-              order: vi.fn(() => {
-                if (table === 'trades') {
-                  // Simulate Supabase max-rows 1000
-                  return Promise.resolve({
-                    data: mockTrades.slice(0, 1000),
-                    error: null
-                  });
-                }
-                return Promise.resolve({ data: [], error: null });
-              }),
-              then: function(resolve: any) {
-                if (table === 'portfolio') {
-                  resolve({
-                    data: mockPortfolio,
-                    error: null
-                  });
-                }
-              }
-            };
-            return selectChain;
-          })
+        const chain: any = {
+          select: vi.fn(() => chain),
+          eq: vi.fn((_column: string, value: string) => {
+            chain._currentAsset = value;
+            return chain;
+          }),
+          order: vi.fn(() => chain),
+          limit: vi.fn(() => chain),
+          maybeSingle: vi.fn(() => {
+            if (table === 'trades') {
+              const latest = mockTrades.find(t => t.asset_symbol === chain._currentAsset);
+              return Promise.resolve({ data: latest || null, error: null });
+            }
+            return Promise.resolve({ data: null, error: null });
+          }),
+          then: function(resolve: any) {
+            if (table === 'portfolio') {
+              resolve({ data: mockPortfolio, error: null });
+            } else if (table === 'trades') {
+              resolve({ data: mockTrades.slice(0, 100), error: null });
+            } else {
+              resolve({ data: [], error: null });
+            }
+          }
         };
         return chain;
       }),
@@ -50,7 +50,7 @@ describe('Dashboard Pagination Stress Test', () => {
     vi.clearAllMocks();
   });
 
-  it('fails to calculate portfolio value if asset latest trade is beyond pagination limit', async () => {
+  it('calculates portfolio value correctly even if asset latest trade is beyond pagination limit', async () => {
     mockTrades = [];
     // Generate 1000 trades of AAPL
     for (let i = 0; i < 1000; i++) {
@@ -95,12 +95,8 @@ describe('Dashboard Pagination Stress Test', () => {
 
     const expectedString = expectedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     
-    // The component will calculate 1500 instead of 51500 because BTC is truncated!
     const totalValueElements = screen.queryAllByText((content) => content.includes(expectedString));
     
-    expect(totalValueElements.length).toBe(0); // It fails to find the correct total
-    
-    const incorrectTotalString = (1500).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    expect(screen.getAllByText((content) => content.includes(incorrectTotalString)).length).toBeGreaterThan(0);
+    expect(totalValueElements.length).toBeGreaterThan(0); // It should find the correct total!
   });
 });

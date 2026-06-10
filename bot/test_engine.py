@@ -17,7 +17,8 @@ class TestTradingBot(unittest.TestCase):
     @patch('bot.trading.engine.fetch_portfolio')
     @patch('bot.trading.engine.upsert_portfolio_balance')
     @patch('bot.trading.engine.insert_trade')
-    def test_trade_size_logic(self, mock_insert, mock_upsert, mock_fetch, mock_client):
+    @patch('bot.trading.engine.update_portfolio_balance_optimistic', return_value=True)
+    def test_trade_size_logic(self, mock_opt, mock_insert, mock_upsert, mock_fetch, mock_client):
         # Initial portfolio
         mock_fetch.return_value = {"USD": 100000.0}
         mock_client.return_value = MagicMock()

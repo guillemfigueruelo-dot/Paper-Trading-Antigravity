@@ -29,7 +29,8 @@ class MockDecision:
 @patch('bot.trading.engine.fetch_portfolio')
 @patch('bot.trading.engine.upsert_portfolio_balance')
 @patch('bot.trading.engine.insert_trade')
-def run_concurrency_test(mock_insert, mock_upsert, mock_fetch, mock_client):
+@patch('bot.trading.engine.update_portfolio_balance_optimistic', return_value=True)
+def run_concurrency_test(mock_opt, mock_insert, mock_upsert, mock_fetch, mock_client):
     db_state = {"USD": 100000.0}
     
     def fake_fetch(client):

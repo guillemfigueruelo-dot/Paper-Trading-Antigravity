@@ -18,8 +18,8 @@
 |---|------|-------|-------------|--------|
 | 1 | Database Initialization | SQL schema for `portfolio` and `trades` | none | DONE |
 | 2 | Python Trading Bot | Bot connecting Finnhub, Gemini, and Supabase | M1 | IN_PROGRESS (804aab2f) |
-| 3 | React/Vite Dashboard | Frontend app reading from Supabase | M1 | IN_PROGRESS (a6d6994d) |
-| 4 | GitHub Actions Setup | Cron configuration for bot | M2 | PLANNED |
+| 3 | React/Vite Dashboard | Frontend app reading from Supabase | M1 | DONE |
+| 4 | GitHub Actions Setup | Cron configuration for bot | M2 | DONE |
 | 5 | Final E2E Test Pass | 100% E2E test suite pass | M1, M2, M3, M4 | PLANNED |
 | 6 | Adversarial Hardening | Tier 5 tests & fixes | M5 | PLANNED |
 

@@ -1,47 +1,52 @@
-/// <reference types="vitest" />
 import { render, screen, waitFor } from '@testing-library/react';
 import App from './App';
 import { vi, describe, it, expect } from 'vitest';
+
+const mockTradesData = [{
+  id: '1',
+  asset_symbol: 'BTC',
+  trade_type: 'BUY',
+  quantity: 1.5,
+  price_usd: 50000,
+  total_value_usd: 75000,
+  ai_justification: 'Strong technical indicators',
+  executed_at: '2026-06-10T10:00:00Z'
+}];
 
 vi.mock('./lib/supabase', () => {
   return {
     supabase: {
       from: vi.fn((table) => {
-        const chain = {
-          select: vi.fn(() => {
-            const selectChain: any = {
-              order: vi.fn(() => {
-                if (table === 'trades') {
-                  return Promise.resolve({
-                    data: [{
-                      id: '1',
-                      asset_symbol: 'BTC',
-                      trade_type: 'BUY',
-                      quantity: 1.5,
-                      price_usd: 50000,
-                      total_value_usd: 75000,
-                      ai_justification: 'Strong technical indicators',
-                      executed_at: '2026-06-10T10:00:00Z'
-                    }],
-                    error: null
-                  });
-                }
-                return Promise.resolve({ data: [], error: null });
-              }),
-              then: function(resolve: any) {
-                if (table === 'portfolio') {
-                  resolve({
-                    data: [
-                      { asset_symbol: 'USD', balance: 120000 },
-                      { asset_symbol: 'BTC', balance: 1.5 }
-                    ],
-                    error: null
-                  });
-                }
-              }
-            };
-            return selectChain;
-          })
+        const chain: any = {
+          select: vi.fn(() => chain),
+          eq: vi.fn((_column: string, value: string) => {
+            chain._currentAsset = value;
+            return chain;
+          }),
+          order: vi.fn(() => chain),
+          limit: vi.fn(() => chain),
+          maybeSingle: vi.fn(() => {
+            if (table === 'trades') {
+              const latest = mockTradesData.find(t => t.asset_symbol === chain._currentAsset);
+              return Promise.resolve({ data: latest || null, error: null });
+            }
+            return Promise.resolve({ data: null, error: null });
+          }),
+          then: function(resolve: any) {
+            if (table === 'portfolio') {
+              resolve({
+                data: [
+                  { asset_symbol: 'USD', balance: 120000 },
+                  { asset_symbol: 'BTC', balance: 1.5 }
+                ],
+                error: null
+              });
+            } else if (table === 'trades') {
+              resolve({ data: mockTradesData, error: null });
+            } else {
+              resolve({ data: [], error: null });
+            }
+          }
         };
         return chain;
       }),

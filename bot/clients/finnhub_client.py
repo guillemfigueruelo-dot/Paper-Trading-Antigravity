@@ -21,21 +21,31 @@ async def fetch_quote(session: aiohttp.ClientSession, symbol: str):
     candle_url = f"https://finnhub.io/api/v1/{asset_type}/candle?symbol={finnhub_symbol}&resolution=D&from={from_time}&to={to_time}&token={FINNHUB_API_KEY}"
     
     try:
-        async with session.get(quote_url) as response:
-            if response.status == 200:
-                quote_data = await response.json()
-            else:
-                return {"symbol": symbol, "current_price": 0.0, "error": f"HTTP {response.status} on quote"}
+        quote_data = {}
+        if asset_type == "stock":
+            async with session.get(quote_url) as response:
+                if response.status == 200:
+                    quote_data = await response.json()
+                else:
+                    return {"symbol": symbol, "current_price": 0.0, "error": f"HTTP {response.status} on quote"}
                 
         candles_data = {}
         async with session.get(candle_url) as candle_res:
             if candle_res.status == 200:
                 candles_data = await candle_res.json()
 
+        if asset_type == "stock":
+            current_price = quote_data.get("c", 0.0)
+        else:
+            if candles_data.get("s") == "ok" and "c" in candles_data and len(candles_data["c"]) > 0:
+                current_price = candles_data["c"][-1]
+            else:
+                current_price = 0.0
+
         # data returns c (current price), d, dp, h, l, o, pc
         return {
             "symbol": symbol, 
-            "current_price": quote_data.get("c", 0.0), 
+            "current_price": current_price, 
             "raw": quote_data,
             "candles": candles_data
         }

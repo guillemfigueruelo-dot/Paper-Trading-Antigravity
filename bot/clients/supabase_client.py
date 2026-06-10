@@ -23,3 +23,10 @@ def insert_trade(client: Client, trade_data: dict):
     if not client:
         return
     client.table("trades").insert(trade_data).execute()
+
+def update_portfolio_balance_optimistic(client: Client, asset_symbol: str, old_balance: float, new_balance: float) -> bool:
+    if not client:
+        return True
+    
+    response = client.table("portfolio").update({"balance": new_balance}).eq("asset_symbol", asset_symbol).eq("balance", old_balance).execute()
+    return hasattr(response, 'data') and len(response.data) > 0

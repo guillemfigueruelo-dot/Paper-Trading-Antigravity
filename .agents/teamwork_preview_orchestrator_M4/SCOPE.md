@@ -6,7 +6,7 @@
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | M4 | Fix GitHub Actions deployment (404 error) and ensure Cron setup | none | IN_PROGRESS |
+| 1 | M4 | Fix GitHub Actions deployment (404 error) and ensure Cron setup | none | DONE |
 
 ## Interface Contracts
 - Deploy to GitHub Pages: ensure `vite.config.ts` base is `/Paper-Trading-Antigravity/` and dist folder is uploaded.
