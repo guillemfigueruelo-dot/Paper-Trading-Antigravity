@@ -79,16 +79,16 @@ describe('Dashboard Realtime Behavior', () => {
       }
     });
 
-    // The UI should immediately show Loading dashboard... and unmount the dashboard
-    expect(screen.getByText('Loading dashboard...')).toBeTruthy();
-    expect(screen.queryByText('AI Paper Trading Dashboard')).toBeNull();
+    // The UI should NOT show Loading dashboard... and should NOT unmount the dashboard
+    expect(screen.queryByText('Loading dashboard...')).toBeNull();
+    expect(screen.getByText('AI Paper Trading Dashboard')).toBeTruthy();
 
     // Wait for the simulated fetch to finish
     await waitFor(() => {
       expect(screen.queryByText('Loading dashboard...')).toBeNull();
     });
     
-    // UI is back
+    // UI is still there
     expect(screen.getByText('AI Paper Trading Dashboard')).toBeTruthy();
   });
 });

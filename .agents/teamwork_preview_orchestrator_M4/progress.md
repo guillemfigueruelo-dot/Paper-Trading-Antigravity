@@ -8,6 +8,6 @@ Current iteration: 1 / 32
 - [x] Dispatch Explorers
 - [x] Collect Explorer reports and synthesize
 - [x] Dispatch Worker
-- [ ] Dispatch Reviewers, Challengers, Auditor
+- [x] Dispatch Reviewers, Challengers, Auditor
 - [ ] Gate (Wait for all results)
 - [ ] Report to parent

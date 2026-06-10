@@ -23,10 +23,11 @@ function App() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [usdBalance, setUsdBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [latestPrices, setLatestPrices] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
+    async function fetchData(isInitial: boolean = false) {
+      if (isInitial) setLoading(true);
       try {
         const { data: portfolioData, error: portfolioError } = await supabase
           .from('portfolio')
@@ -34,20 +35,39 @@ function App() {
 
         if (portfolioError) throw portfolioError;
 
+        let currentPortfolio: PortfolioAsset[] = [];
         if (portfolioData) {
           const usd = portfolioData.find((p) => p.asset_symbol === 'USD');
           setUsdBalance(usd ? Number(usd.balance) : 0);
-          setPortfolio(
-            portfolioData
-              .filter((p) => p.asset_symbol !== 'USD')
-              .map((p) => ({ ...p, balance: Number(p.balance) }))
-          );
+          currentPortfolio = portfolioData
+            .filter((p) => p.asset_symbol !== 'USD')
+            .map((p) => ({ ...p, balance: Number(p.balance) }));
+          setPortfolio(currentPortfolio);
         }
+
+        const prices: Record<string, number> = {};
+        await Promise.all(
+          currentPortfolio.map(async (asset) => {
+            const { data } = await supabase
+              .from('trades')
+              .select('price_usd')
+              .eq('asset_symbol', asset.asset_symbol)
+              .order('executed_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            
+            if (data) {
+              prices[asset.asset_symbol] = Number(data.price_usd);
+            }
+          })
+        );
+        setLatestPrices(prices);
 
         const { data: tradesData, error: tradesError } = await supabase
           .from('trades')
           .select('*')
-          .order('executed_at', { ascending: false });
+          .order('executed_at', { ascending: false })
+          .limit(100);
 
         if (tradesError) throw tradesError;
         if (tradesData) {
@@ -63,11 +83,11 @@ function App() {
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
-        setLoading(false);
+        if (isInitial) setLoading(false);
       }
     }
 
-    fetchData();
+    fetchData(true);
 
     // Subscribe to changes
     const portfolioSub = supabase
@@ -75,7 +95,7 @@ function App() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'portfolio' },
-        fetchData
+        () => fetchData(false)
       )
       .subscribe();
 
@@ -84,7 +104,7 @@ function App() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'trades' },
-        fetchData
+        () => fetchData(false)
       )
       .subscribe();
 
@@ -100,12 +120,12 @@ function App() {
 
   const INITIAL_CAPITAL = 100000;
 
-  // Calculate total portfolio value using the latest trade price for each asset
+  // Calculate total portfolio value using the separately fetched latest prices
   let totalPortfolioValue = usdBalance;
   portfolio.forEach((asset) => {
-    const latestTrade = trades.find((t) => t.asset_symbol === asset.asset_symbol);
-    if (latestTrade) {
-      totalPortfolioValue += asset.balance * latestTrade.price_usd;
+    const price = latestPrices[asset.asset_symbol];
+    if (price !== undefined) {
+      totalPortfolioValue += asset.balance * price;
     }
   });
 
