@@ -12,10 +12,8 @@ async def get_trade_decision(session: aiohttp.ClientSession, symbol: str, quote_
     if not GEMINI_API_KEY:
         # Fallback if no key
         return TradeDecision(action="HOLD", justification="No Gemini API key")
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
-    
-    prompt = f"Analyze the following market data for {symbol}: {quote_data}. Decide whether to BUY, SELL, or HOLD. Provide a justification."
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+    prompt = f"Analyze the following market and historical candle data for {symbol}: {quote_data}. Decide whether to BUY, SELL, or HOLD. Provide a justification."
     
     payload = {
         "contents": [{
@@ -47,7 +45,17 @@ async def get_trade_decision(session: aiohttp.ClientSession, symbol: str, quote_
             if response.status == 200:
                 data = await response.json()
                 text_response = data["candidates"][0]["content"]["parts"][0]["text"]
-                parsed = json.loads(text_response)
+                
+                cleaned_text = text_response.strip()
+                if cleaned_text.startswith("```json"):
+                    cleaned_text = cleaned_text[7:]
+                elif cleaned_text.startswith("```"):
+                    cleaned_text = cleaned_text[3:]
+                if cleaned_text.endswith("```"):
+                    cleaned_text = cleaned_text[:-3]
+                cleaned_text = cleaned_text.strip()
+                
+                parsed = json.loads(cleaned_text)
                 return TradeDecision(action=parsed.get("action", "HOLD"), justification=parsed.get("justification", "Unknown"))
             else:
                 text = await response.text()

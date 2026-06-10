@@ -1,12 +1,10 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import App from './App';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { supabase } from './lib/supabase';
 
 let mockTrades: any[] = [];
 let mockPortfolio: any[] = [];
 let portfolioCallback: any = null;
-let tradesCallback: any = null;
 
 vi.mock('./lib/supabase', () => {
   return {
@@ -39,9 +37,8 @@ vi.mock('./lib/supabase', () => {
         return chain;
       }),
       channel: vi.fn((channelName) => ({
-        on: vi.fn((event, filter, callback) => {
+        on: vi.fn((_event, _filter, callback) => {
           if (channelName === 'portfolio-changes') portfolioCallback = callback;
-          if (channelName === 'trades-changes') tradesCallback = callback;
           return {
             subscribe: vi.fn()
           };

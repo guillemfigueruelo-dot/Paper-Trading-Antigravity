@@ -2,17 +2,43 @@ import aiohttp
 import asyncio
 from bot.config import FINNHUB_API_KEY, FINNHUB_SYMBOL_MAP
 
+import time
+
 async def fetch_quote(session: aiohttp.ClientSession, symbol: str):
     finnhub_symbol = FINNHUB_SYMBOL_MAP.get(symbol, symbol)
-    url = f"https://finnhub.io/api/v1/quote?symbol={finnhub_symbol}&token={FINNHUB_API_KEY}"
+    quote_url = f"https://finnhub.io/api/v1/quote?symbol={finnhub_symbol}&token={FINNHUB_API_KEY}"
+    
+    to_time = int(time.time())
+    from_time = to_time - (10 * 24 * 60 * 60)
+    
+    if "OANDA:" in finnhub_symbol or "FX:" in finnhub_symbol:
+        asset_type = "forex"
+    elif "BINANCE:" in finnhub_symbol or "KRAKEN:" in finnhub_symbol:
+        asset_type = "crypto"
+    else:
+        asset_type = "stock"
+        
+    candle_url = f"https://finnhub.io/api/v1/{asset_type}/candle?symbol={finnhub_symbol}&resolution=D&from={from_time}&to={to_time}&token={FINNHUB_API_KEY}"
+    
     try:
-        async with session.get(url) as response:
+        async with session.get(quote_url) as response:
             if response.status == 200:
-                data = await response.json()
-                # data returns c (current price), d, dp, h, l, o, pc
-                return {"symbol": symbol, "current_price": data.get("c", 0.0), "raw": data}
+                quote_data = await response.json()
             else:
-                return {"symbol": symbol, "current_price": 0.0, "error": f"HTTP {response.status}"}
+                return {"symbol": symbol, "current_price": 0.0, "error": f"HTTP {response.status} on quote"}
+                
+        candles_data = {}
+        async with session.get(candle_url) as candle_res:
+            if candle_res.status == 200:
+                candles_data = await candle_res.json()
+
+        # data returns c (current price), d, dp, h, l, o, pc
+        return {
+            "symbol": symbol, 
+            "current_price": quote_data.get("c", 0.0), 
+            "raw": quote_data,
+            "candles": candles_data
+        }
     except Exception as e:
         return {"symbol": symbol, "current_price": 0.0, "error": str(e)}
 

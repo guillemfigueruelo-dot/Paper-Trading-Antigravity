@@ -14,7 +14,14 @@ def process_decisions(quotes: dict, decisions: dict, dry_run: bool = False):
         portfolio = fetch_portfolio(client) if client else {}
     except Exception as e:
         print(f"Failed to fetch portfolio: {e}")
+        if not dry_run:
+            raise RuntimeError(f"Aborting execution: Failed to fetch portfolio: {e}")
         portfolio = {}
+
+    if not portfolio and not dry_run and client:
+        print("Seeding Supabase with initial $100,000.00 USD balance.")
+        upsert_portfolio_balance(client, "USD", 100000.00)
+        portfolio["USD"] = 100000.00
 
     if "USD" not in portfolio:
         portfolio["USD"] = 100000.00  # Default fallback if DB is empty or dry-run without creds
@@ -41,7 +48,7 @@ def process_decisions(quotes: dict, decisions: dict, dry_run: bool = False):
         usd_balance = float(portfolio["USD"])
 
         if asset_balance > 0:
-            quantity = asset_balance
+            quantity = round(asset_balance, 6)
             total_value = quantity * current_price
             
             print(f"ACTION: SELL {quantity:.6f} {symbol} for ${total_value:.2f}")
@@ -95,7 +102,7 @@ def process_decisions(quotes: dict, decisions: dict, dry_run: bool = False):
 
         if usd_balance > 0:
             allocated_usd = min(base_allocation, usd_balance)
-            quantity = allocated_usd / current_price
+            quantity = round(allocated_usd / current_price, 6)
             
             print(f"ACTION: BUY {quantity:.6f} {symbol} for ${allocated_usd:.2f}")
             

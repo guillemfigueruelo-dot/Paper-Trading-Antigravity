@@ -16,7 +16,7 @@ vi.mock('./lib/supabase', () => {
         }))
       })),
       channel: vi.fn(() => ({
-        on: vi.fn((event, filter, callback) => {
+        on: vi.fn((_event, filter, callback) => {
           if (filter.table === 'portfolio') {
             triggerPortfolioChange = callback;
           }
