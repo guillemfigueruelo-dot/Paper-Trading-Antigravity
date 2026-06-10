@@ -6,7 +6,7 @@ Current iteration: 3 / 32
 
 - [x] Assess Task
 - [x] Explore (Explorer)
-- [ ] Implement (Worker)
+- [x] Implement (Worker)
 - [ ] Review (Reviewer)
 - [ ] Challenge (Challenger)
 - [ ] Audit (Forensic Auditor)

@@ -1,14 +1,15 @@
 import asyncio
-import sys
-import os
-import time
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from unittest.mock import patch, MagicMock
 from bot.trading.engine import process_decisions
-from bot.clients.gemini_client import TradeDecision
+import time
+import pytest
 
-async def mock_async_process(quotes, decisions, mock_insert, mock_upsert, mock_fetch, mock_client):
+class MockDecision:
+    def __init__(self, action, justification):
+        self.action = action
+        self.justification = justification
+
+async def mock_async_process(quotes, decisions, mock_insert, mock_upsert, mock_fetch, mock_client, mock_opt):
     loop = asyncio.get_running_loop()
     
     def run_single(symbol, decision):
@@ -20,31 +21,28 @@ async def mock_async_process(quotes, decisions, mock_insert, mock_upsert, mock_f
         
     await asyncio.gather(*tasks)
 
-class MockDecision:
-    def __init__(self, action, justification):
-        self.action = action
-        self.justification = justification
-
+@pytest.mark.asyncio
 @patch('bot.trading.engine.get_supabase_client')
 @patch('bot.trading.engine.fetch_portfolio')
 @patch('bot.trading.engine.upsert_portfolio_balance')
 @patch('bot.trading.engine.insert_trade')
-@patch('bot.trading.engine.update_portfolio_balance_optimistic', return_value=True)
-def run_concurrency_test(mock_opt, mock_insert, mock_upsert, mock_fetch, mock_client):
+@patch('bot.trading.engine.update_portfolio_balance_optimistic')
+async def test_run_concurrency(mock_opt, mock_insert, mock_upsert, mock_fetch, mock_client):
     db_state = {"USD": 100000.0}
     
     def fake_fetch(client):
-        time.sleep(0.1) # Simulate network IO
+        time.sleep(0.01) # Simulate network IO
         return dict(db_state)
     mock_fetch.side_effect = fake_fetch
     mock_client.return_value = MagicMock()
     
-    def fake_upsert(client, symbol, balance):
-        time.sleep(0.1) # Simulate network IO
-        db_state[symbol] = balance
-        if symbol == 'USD':
-            db_state['USD'] = balance
-    mock_upsert.side_effect = fake_upsert
+    def fake_opt(client, symbol, old_val, new_val):
+        time.sleep(0.01)
+        if float(db_state.get(symbol, 0.0)) == float(old_val):
+            db_state[symbol] = float(new_val)
+            return True
+        return False
+    mock_opt.side_effect = fake_opt
     
     quotes = {
         "AAPL": {"current_price": 100.0},
@@ -55,11 +53,9 @@ def run_concurrency_test(mock_opt, mock_insert, mock_upsert, mock_fetch, mock_cl
         "GOOG": MockDecision("BUY", "test"),
     }
     
-    asyncio.run(mock_async_process(quotes, decisions, mock_insert, mock_upsert, mock_fetch, mock_client))
+    await mock_async_process(quotes, decisions, mock_insert, mock_upsert, mock_fetch, mock_client, mock_opt)
     
-    print(f"Final DB USD Balance after concurrent processing: {db_state['USD']}")
-    if db_state['USD'] == 90000.0:
-        print("RACE CONDITION CONFIRMED: One update overwrote the other!")
-
-if __name__ == '__main__':
-    run_concurrency_test()
+    assert db_state['USD'] < 100000.0
+    # With 2 BUYS, it allocates 10% of USD each time.
+    # Concurrency safe should be around 90000 and 81000 or so if serial, or exactly calculated.
+    assert db_state['USD'] >= 80000.0

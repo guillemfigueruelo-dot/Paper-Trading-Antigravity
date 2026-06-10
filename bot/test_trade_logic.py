@@ -15,8 +15,17 @@ class TestTradeLogic(unittest.TestCase):
     @patch('bot.trading.engine.insert_trade')
     @patch('bot.trading.engine.update_portfolio_balance_optimistic', return_value=True)
     def test_trade_sizes_equal(self, mock_opt, mock_insert, mock_upsert, mock_fetch, mock_client):
-        # We start with $100,000 USD
-        mock_fetch.return_value = {"USD": 100000.0}
+        db_state = {"USD": 100000.0}
+        def fake_fetch(client):
+            return dict(db_state)
+        mock_fetch.side_effect = fake_fetch
+        def fake_opt(client, symbol, old_val, new_val):
+            if float(db_state.get(symbol, 0.0)) == float(old_val):
+                db_state[symbol] = float(new_val)
+                return True
+            return False
+        mock_opt.side_effect = fake_opt
+
         mock_client.return_value = MagicMock()
         
         quotes = {
@@ -73,10 +82,21 @@ class TestTradeLogic(unittest.TestCase):
     @patch('bot.trading.engine.fetch_portfolio')
     @patch('bot.trading.engine.upsert_portfolio_balance')
     @patch('bot.trading.engine.insert_trade')
-    @patch('bot.trading.engine.update_portfolio_balance_optimistic', return_value=True)
+    @patch('bot.trading.engine.update_portfolio_balance_optimistic')
     def test_sell_proceeds_reinvested(self, mock_opt, mock_insert, mock_upsert, mock_fetch, mock_client):
         # We start with $0 USD, but we have 10 AAPL shares (worth $1000 total)
-        mock_fetch.return_value = {"USD": 0.0, "AAPL": 10.0}
+        db_state = {"USD": 0.0, "AAPL": 10.0}
+        def fake_fetch(client):
+            return dict(db_state)
+        mock_fetch.side_effect = fake_fetch
+        
+        def fake_opt(client, symbol, old_val, new_val):
+            if float(db_state.get(symbol, 0.0)) == float(old_val):
+                db_state[symbol] = float(new_val)
+                return True
+            return False
+        mock_opt.side_effect = fake_opt
+        
         mock_client.return_value = MagicMock()
         
         quotes = {
