@@ -110,7 +110,7 @@ describe('Dashboard Calculation Stress Test', () => {
     const expectedString = expectedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     
     // Using a more flexible text matcher since it's rendered as $VALUE
-    const totalValueElements = screen.getAllByText((content, _element) => {
+    const totalValueElements = screen.getAllByText((content) => {
       return content.includes(expectedString) || content.replace(/[^0-9.-]+/g, "") === expectedTotal.toFixed(2);
     });
     
